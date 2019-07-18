@@ -32,6 +32,7 @@ type Exporter struct {
 	openedTotal          *prometheus.Desc
 	storedTotal          *prometheus.Desc
 	unsubscribedTotal    *prometheus.Desc
+	state                *prometheus.Desc
 }
 
 func prometheusDomainStatsDesc(metric string, help string) *prometheus.Desc {
@@ -121,6 +122,16 @@ func NewExporter() *Exporter {
 			"unsubscribed",
 			"The email recipient clicked on the unsubscribe link.",
 		),
+		state: prometheus.NewDesc(
+			prometheus.BuildFQName(
+				namespace,
+				"domain",
+				"state",
+			),
+			"Is the domain active (1) or disabled (0)",
+			[]string{"name"},
+			nil,
+		),
 	}
 }
 
@@ -136,6 +147,7 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- e.openedTotal
 	ch <- e.storedTotal
 	ch <- e.unsubscribedTotal
+	ch <- e.state
 }
 
 // Collect implements prometheus.Collector. It only initiates a scrape of
@@ -151,6 +163,13 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 	for _, info := range domains {
 		domain := info.Name
+
+		state := 1
+		if info.State != "active" {
+			state = 0
+		}
+		ch <- prometheus.MustNewConstMetric(e.state, prometheus.GaugeValue, float64(state), domain)
+
 		stats, err := getStats(domain)
 		if err != nil {
 			log.Errorln(err)
