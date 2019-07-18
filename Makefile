@@ -24,7 +24,7 @@ GO111MODULE  := on
 VERSION      := $(shell cat VERSION)
 
 .PHONY: all
-all: prometheus-mailgun-exporter docker-build
+all: prometheus-mailgun-exporter docker
 
 .PHONY: fmt
 fmt:
@@ -43,8 +43,8 @@ prometheus-mailgun-exporter: fmt
 			-X github.com/prometheus/common/version.Revision=$(GIT_REVISION) \
 			-X github.com/prometheus/common/version.Version=$(VERSION)"
 
-.PHONY: docker-build
-docker-build: fmt
+.PHONY: docker
+docker: fmt
 	@docker build \
 		--build-arg BUILD_DATE=$(BUILD_DATE) \
 		--build-arg BUILD_USER=$(BUILD_USER) \
