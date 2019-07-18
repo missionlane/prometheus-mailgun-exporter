@@ -23,12 +23,21 @@ builderNode {
     )
   }
 
+  stage("Docker Promote All Builds") {
+    promoteDockerImage(
+      imageName: imageName,
+      toTags: ["latest"]
+    )
+  }
+
   if (env.BRANCH_NAME == "master") {
-    stage("Docker Promote") {
+    stage("Docker Promote Tag") {
+      if (env.TAG_NAME ==~ /^v.+$/) {
         promoteDockerImage(
           imageName: imageName,
-          toTags: ["latest", "${version}"]
+          toTags: ["latest", version]
         )
+      }
     }
   }
 }
