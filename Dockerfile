@@ -21,6 +21,6 @@ RUN apk --update --no-cache add git && \
 FROM alpine:latest
 RUN apk --update --no-cache add ca-certificates
 ENTRYPOINT ["/mailgun-exporter"]
-EXPOSE 9609/tcp
+EXPOSE 9616/tcp
 USER nobody
 COPY --from=builder /go/bin/mailgun-exporter .
