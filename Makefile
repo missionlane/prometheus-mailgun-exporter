@@ -53,4 +53,5 @@ docker: fmt
 		--build-arg GO111MODULE=$(GO111MODULE) \
 		--build-arg VERSION=$(VERSION) \
 		-t "$(DOCKER_REPO)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)" \
+		-t "$(DOCKER_REPO)/$(DOCKER_IMAGE_NAME):latest" \
 		.
