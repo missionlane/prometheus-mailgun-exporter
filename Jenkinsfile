@@ -30,14 +30,12 @@ builderNode {
     )
   }
 
-  if (env.BRANCH_NAME == "master") {
-    stage("Docker Promote Tag") {
-      if (env.TAG_NAME ==~ /^v.+$/) {
-        promoteDockerImage(
-          imageName: imageName,
-          toTags: ["latest", version]
-        )
-      }
+  stage("Docker Promote Tag") {
+    if (env.TAG_NAME ==~ /^v.+$/) {
+      promoteDockerImage(
+        imageName: imageName,
+        toTags: ["latest", version]
+      )
     }
   }
 }
