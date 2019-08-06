@@ -30,11 +30,19 @@ builderNode {
     )
   }
 
-  stage("Docker Promote Tag") {
+  stage("Docker Promote Tag and Deploy") {
     if (env.TAG_NAME ==~ /^v.+$/) {
       promoteDockerImage(
         imageName: imageName,
         toTags: ["latest", version]
+      )
+
+      deployNomadService(
+        group: group,
+        service: service,
+        version: version,
+        stack: "prod-us-east-1",
+        slackChannels: "team-infra-changes"
       )
     }
   }
