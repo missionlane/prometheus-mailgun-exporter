@@ -175,82 +175,115 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			log.Errorln(err)
 		}
 
+		var acceptedTotalIncoming = float64(0)
+		var acceptedTotalOutgoing = float64(0)
+		var clickedTotal = float64(0)
+		var complainedTotal = float64(0)
+		var deliveredHttpTotal = float64(0)
+		var deliveredSmtpTotal = float64(0)
+		var failedPermanentBounce = float64(0)
+		var failedPermanentDelayedBounce = float64(0)
+		var failedPermanentSuppressBounce = float64(0)
+		var failedPermanentSuppressComplaint = float64(0)
+		var failedPermanentSuppressUnsubscribe = float64(0)
+		var failedTemporaryEspblock = float64(0)
+		var openedTotal = float64(0)
+		var storedTotal = float64(0)
+		var unsubscribedTotal = float64(0)
+
 		for _, stat := range stats {
-			// Begin Accepted Total
-			ch <- prometheus.MustNewConstMetric(
-				e.acceptedTotal,
-				prometheus.CounterValue,
-				float64(stat.Accepted.Incoming),
-				domain, "incoming",
-			)
-			ch <- prometheus.MustNewConstMetric(
-				e.acceptedTotal,
-				prometheus.CounterValue,
-				float64(stat.Accepted.Outgoing),
-				domain, "outgoing",
-			)
-			// End Accepted Total
-
-			ch <- prometheus.MustNewConstMetric(e.clickedTotal, prometheus.CounterValue, float64(stat.Clicked.Total), domain)
-			ch <- prometheus.MustNewConstMetric(e.complainedTotal, prometheus.CounterValue, float64(stat.Complained.Total), domain)
-
-			// Begin Delivered Total
-			ch <- prometheus.MustNewConstMetric(
-				e.deliveredTotal,
-				prometheus.CounterValue,
-				float64(stat.Delivered.Http),
-				domain, "http",
-			)
-			ch <- prometheus.MustNewConstMetric(
-				e.deliveredTotal,
-				prometheus.CounterValue,
-				float64(stat.Delivered.Smtp),
-				domain, "smtp",
-			)
-			// End Delivered Total
-
-			// Begin Failed Permanent Total
-			ch <- prometheus.MustNewConstMetric(
-				e.failedPermanentTotal,
-				prometheus.CounterValue,
-				float64(stat.Failed.Permanent.Bounce),
-				domain, "bounce",
-			)
-			ch <- prometheus.MustNewConstMetric(
-				e.failedPermanentTotal,
-				prometheus.CounterValue,
-				float64(stat.Failed.Permanent.DelayedBounce),
-				domain, "delayed_bounce",
-			)
-			ch <- prometheus.MustNewConstMetric(
-				e.failedPermanentTotal,
-				prometheus.CounterValue,
-				float64(stat.Failed.Permanent.SuppressBounce),
-				domain, "suppress_bounce",
-			)
-			ch <- prometheus.MustNewConstMetric(
-				e.failedPermanentTotal,
-				prometheus.CounterValue,
-				float64(stat.Failed.Permanent.SuppressComplaint),
-				domain, "suppress_complaint",
-			)
-			ch <- prometheus.MustNewConstMetric(e.failedPermanentTotal, prometheus.CounterValue,
-				float64(stat.Failed.Permanent.SuppressUnsubscribe),
-				domain, "suppress_unsubscribe",
-			)
-			// End Failed Permanent Total
-
-			ch <- prometheus.MustNewConstMetric(
-				e.failedTemporaryTotal,
-				prometheus.CounterValue,
-				float64(stat.Failed.Temporary.Espblock),
-				domain, "esp_block",
-			)
-
-			ch <- prometheus.MustNewConstMetric(e.openedTotal, prometheus.CounterValue, float64(stat.Opened.Total), domain)
-			ch <- prometheus.MustNewConstMetric(e.storedTotal, prometheus.CounterValue, float64(stat.Stored.Total), domain)
-			ch <- prometheus.MustNewConstMetric(e.unsubscribedTotal, prometheus.CounterValue, float64(stat.Unsubscribed.Total), domain)
+			acceptedTotalIncoming += float64(stat.Accepted.Incoming)
+			acceptedTotalOutgoing += float64(stat.Accepted.Outgoing)
+			clickedTotal += float64(stat.Clicked.Total)
+			complainedTotal += float64(stat.Complained.Total)
+			complainedTotal += float64(stat.Complained.Total)
+			deliveredHttpTotal += float64(stat.Delivered.Http)
+			deliveredSmtpTotal += float64(stat.Delivered.Smtp)
+			failedPermanentBounce += float64(stat.Failed.Permanent.Bounce)
+			failedPermanentDelayedBounce += float64(stat.Failed.Permanent.DelayedBounce)
+			failedPermanentSuppressBounce += float64(stat.Failed.Permanent.SuppressBounce)
+			failedPermanentSuppressComplaint += float64(stat.Failed.Permanent.SuppressComplaint)
+			failedPermanentSuppressUnsubscribe += float64(stat.Failed.Permanent.SuppressUnsubscribe)
+			failedTemporaryEspblock += float64(stat.Failed.Temporary.Espblock)
+			openedTotal += float64(stat.Opened.Total)
+			storedTotal += float64(stat.Stored.Total)
+			unsubscribedTotal += float64(stat.Unsubscribed.Total)
 		}
+
+		// Begin Accepted Total
+		ch <- prometheus.MustNewConstMetric(
+			e.acceptedTotal,
+			prometheus.CounterValue,
+			acceptedTotalIncoming,
+			domain, "incoming",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			e.acceptedTotal,
+			prometheus.CounterValue,
+			acceptedTotalOutgoing,
+			domain, "outgoing",
+		)
+		// End Accepted Total
+
+		ch <- prometheus.MustNewConstMetric(e.clickedTotal, prometheus.CounterValue, clickedTotal, domain)
+		ch <- prometheus.MustNewConstMetric(e.complainedTotal, prometheus.CounterValue, complainedTotal, domain)
+
+		// Begin Delivered Total
+		ch <- prometheus.MustNewConstMetric(
+			e.deliveredTotal,
+			prometheus.CounterValue,
+			deliveredHttpTotal,
+			domain, "http",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			e.deliveredTotal,
+			prometheus.CounterValue,
+			deliveredSmtpTotal,
+			domain, "smtp",
+		)
+		// End Delivered Total
+
+		// Begin Failed Permanent Total
+		ch <- prometheus.MustNewConstMetric(
+			e.failedPermanentTotal,
+			prometheus.CounterValue,
+			failedPermanentBounce,
+			domain, "bounce",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			e.failedPermanentTotal,
+			prometheus.CounterValue,
+			failedPermanentDelayedBounce,
+			domain, "delayed_bounce",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			e.failedPermanentTotal,
+			prometheus.CounterValue,
+			failedPermanentSuppressBounce,
+			domain, "suppress_bounce",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			e.failedPermanentTotal,
+			prometheus.CounterValue,
+			failedPermanentSuppressComplaint,
+			domain, "suppress_complaint",
+		)
+		ch <- prometheus.MustNewConstMetric(e.failedPermanentTotal, prometheus.CounterValue,
+			failedPermanentSuppressUnsubscribe,
+			domain, "suppress_unsubscribe",
+		)
+		// End Failed Permanent Total
+
+		ch <- prometheus.MustNewConstMetric(
+			e.failedTemporaryTotal,
+			prometheus.CounterValue,
+			failedTemporaryEspblock,
+			domain, "esp_block",
+		)
+
+		ch <- prometheus.MustNewConstMetric(e.openedTotal, prometheus.CounterValue, openedTotal, domain)
+		ch <- prometheus.MustNewConstMetric(e.storedTotal, prometheus.CounterValue, storedTotal, domain)
+		ch <- prometheus.MustNewConstMetric(e.unsubscribedTotal, prometheus.CounterValue, unsubscribedTotal, domain)
 	}
 
 	ch <- prometheus.MustNewConstMetric(e.up, prometheus.GaugeValue, 1)
@@ -290,7 +323,7 @@ func getStats(domain string) ([]mailgun.Stats, error) {
 	return mg.GetStats(ctx, []string{
 		"accepted", "clicked", "complained", "delivered", "failed", "opened", "stored", "unsubscribed",
 	}, &mailgun.GetStatOptions{
-		Duration: "1h",
+		Duration: "240m",
 	})
 }
 
