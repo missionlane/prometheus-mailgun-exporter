@@ -70,6 +70,10 @@ func NewExporter() *Exporter {
 	}
 
 	mg, err := mailgun.NewMailgunFromEnv()
+	APIBase, exists := os.LookupEnv("API_BASE")
+	if exists {
+		mg.SetAPIBase(APIBase)
+	}
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -313,6 +317,10 @@ func getStats(domain string) ([]mailgun.Stats, error) {
 	}
 
 	mg, err := mailgun.NewMailgunFromEnv()
+	APIBase, exists := os.LookupEnv("API_BASE")
+	if exists {
+		mg.SetAPIBase(APIBase)
+	}
 	if err != nil {
 		log.Errorln(err)
 	}
