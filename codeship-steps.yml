@@ -1,0 +1,11 @@
+- type: serial
+  steps:
+      - name: Push the app To ECR - branch tag
+        service: app
+        type: push
+        image_name: 382093569472.dkr.ecr.us-east-1.amazonaws.com/prometheus-mailgun-exporter
+        image_tag: "{{ .Branch }}-latest"
+        registry: https://382093569472.dkr.ecr.us-east-1.amazonaws.com
+        dockercfg_service: aws-ecr-dockercfg-generator-aws-us-east-1
+
+
