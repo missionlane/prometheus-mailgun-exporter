@@ -67,7 +67,7 @@ func NewExporter() *Exporter {
 	// NewMailgunFromEnv requires MG_DOMAIN to get set, even though we don't need it for listing all domains
 	err := os.Setenv("MG_DOMAIN", "dummy")
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msgf("%v", err)
 	}
 
 	mg, err := mailgun.NewMailgunFromEnv()
@@ -76,7 +76,7 @@ func NewExporter() *Exporter {
 		mg.SetAPIBase(APIBase)
 	}
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msgf("%v", err)
 	}
 
 	return &Exporter{
@@ -371,6 +371,6 @@ func main() {
 	log.Info().Msgf("Starting HTTP server on listen address %s and metric path %s", *listenAddress, *metricsPath)
 
 	if err := http.ListenAndServe(*listenAddress, nil); err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msgf("%v", err)
 	}
 }
