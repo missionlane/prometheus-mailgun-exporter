@@ -10,8 +10,9 @@ import (
 	"github.com/mailgun/mailgun-go/v3"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -66,7 +67,7 @@ func NewExporter() *Exporter {
 	// NewMailgunFromEnv requires MG_DOMAIN to get set, even though we don't need it for listing all domains
 	err := os.Setenv("MG_DOMAIN", "dummy")
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal().Err(err).Msgf("%v", err)
 	}
 
 	mg, err := mailgun.NewMailgunFromEnv()
@@ -75,7 +76,7 @@ func NewExporter() *Exporter {
 		mg.SetAPIBase(APIBase)
 	}
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal().Err(err).Msgf("%v", err)
 	}
 
 	return &Exporter{
@@ -162,7 +163,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	domains, err := e.listDomains()
 	if err != nil {
 		ch <- prometheus.MustNewConstMetric(e.up, prometheus.GaugeValue, 0)
-		log.Errorf("Scrape of Mailgun's API failed: %s", err)
+		log.Error().Err(err).Msgf("Scrape of Mailgun's API failed: %s", err)
 	}
 
 	for _, info := range domains {
@@ -176,7 +177,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 		stats, err := getStats(domain)
 		if err != nil {
-			log.Errorln(err)
+			log.Error().Err(err)
 		}
 
 		var acceptedTotalIncoming = float64(0)
@@ -313,7 +314,7 @@ func getStats(domain string) ([]mailgun.Stats, error) {
 	// Since we are using NewMailgunFromEnv, we need to set MG_DOMAIN before fetching stats for said domain
 	err := os.Setenv("MG_DOMAIN", domain)
 	if err != nil {
-		log.Errorln(err)
+		log.Error().Err(err)
 	}
 
 	mg, err := mailgun.NewMailgunFromEnv()
@@ -322,7 +323,7 @@ func getStats(domain string) ([]mailgun.Stats, error) {
 		mg.SetAPIBase(APIBase)
 	}
 	if err != nil {
-		log.Errorln(err)
+		log.Error().Err(err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
@@ -341,12 +342,16 @@ func main() {
 		metricsPath   = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 	)
 
-	log.AddFlags(kingpin.CommandLine)
+	if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	}
+
 	kingpin.Version(version.Print("prometheus-mailgun-exporter"))
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
-	log.Infoln("Starting Mailgun exporter", version.Info())
-	log.Infoln("Build context", version.BuildContext())
+	log.Info().Msgf("Starting Mailgun exporter %v", version.Info())
+	log.Info().Msgf("Build context %v", version.BuildContext())
 
 	prometheus.MustRegister(NewExporter())
 	http.Handle(*metricsPath, promhttp.Handler())
@@ -356,9 +361,16 @@ func main() {
             <body>
             <h1>Mailgun Exporter</h1>
             <p><a href='` + *metricsPath + `'>Metrics</a></p>
+			<p><a href='/healthz'>Health</a></p>
             </body>
             </html>`))
 	})
-	log.Infof("Starting HTTP server on listen address %s and metric path %s", *listenAddress, *metricsPath)
-	log.Fatal(http.ListenAndServe(*listenAddress, nil))
+	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+	log.Info().Msgf("Starting HTTP server on listen address %s and metric path %s", *listenAddress, *metricsPath)
+
+	if err := http.ListenAndServe(*listenAddress, nil); err != nil {
+		log.Fatal().Err(err).Msgf("%v", err)
+	}
 }

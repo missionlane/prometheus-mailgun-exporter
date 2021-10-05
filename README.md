@@ -5,7 +5,7 @@ Prometheus Mailgun Exporter
 `make` will build both binary and Docker image
 
 ## Run
-The exporter will serve metrics on `http://<ip>:9616/metrics`
+The exporter will serve metrics on `http://<ip>:9616/metrics`, and a healthz endpoint on `http://<ip>:9616/healthz` for use in Kubernetes
 
 `export MG_API_KEY=<api_key>`
 
