@@ -25,7 +25,7 @@ jobs:
       - name: Prepare
         id: prep
         run: |
-          ML_PROJECT_VERSION=$(TZ=UTC git --no-pager log -n1 --date="format-local:%Y%m%dT%H%M%S" --pretty="format:%cd-%h" --abbrev=7)
+          PROJECT_VERSION=$(TZ=UTC git --no-pager log -n1 --date="format-local:%Y%m%dT%H%M%S" --pretty="format:%cd-%h" --abbrev=7)
 
           VERSION=edge
           if [[ $GITHUB_REF == refs/tags/* ]]; then
@@ -35,40 +35,14 @@ jobs:
           elif [[ $GITHUB_REF == refs/pull/* ]]; then
             VERSION=pr-${{ github.event.number }}
           fi
-
-          # Tag with both registries GHCR and
-          if [ '${{ github.event_name != 'pull_request' }}' == 'true' ]; then
-            # release to all registries
-            GHCR=ghcr.io/${GITHUB_REPOSITORY,,}
-            ARTIFACTORY=docker.pennywise.cc/${GITHUB_REPOSITORY,,}
-            TAGS="${ARTIFACTORY}:${VERSION},${GHCR}:${VERSION},${ARTIFACTORY}:$ML_PROJECT_VERSION,${GHCR}:$ML_PROJECT_VERSION"
-          else
-            # only internal staging
-            ARTIFACTORY="docker-builds.pennywise.cc/${GITHUB_REPOSITORY,,}"
-            TAGS="$ARTIFACTORY:$ML_PROJECT_VERSION"
-          fi
+          IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}
+          TAGS="$IMAGE:$VERSION,$IMAGE:$PROJECT_VERSION"
 
           # outputs
           for out in "build-date=$(date +%Y%m%d-%H:%M:%S)" "build-user=$(whoami)" "git-branch=$(git rev-parse --abbrev-ref HEAD)" "git-version=$(git rev-parse HEAD)" "version=${VERSION}" "tags=${TAGS}" "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"; do
             # echo "k=v" >> $GITHUB_OUTPUT
             echo $out | tee >(cat) >> $GITHUB_OUTPUT
           done
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Context for Buildx
-        id: buildx-context
-        run: |
-          docker context create builders
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver: docker-container
-          driver-opts: network=host
-          version: latest
-          endpoint: builders
-          buildkitd-flags: --debug --allow-insecure-entitlement network.host
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -77,33 +51,15 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to docker.pennywise.cc
-        uses: docker/login-action@v2
-        with:
-          registry: docker.pennywise.cc
-          username: ${{ secrets.ARTIFACTORY_USERNAME }}
-          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
-
-      - name: Login to docker-builds.pennywise.cc
-        uses: docker/login-action@v2
-        with:
-          registry: docker-builds.pennywise.cc
-          username: ${{ secrets.ARTIFACTORY_USERNAME }}
-          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
-
       - name: Build and Push
         uses: docker/build-push-action@v2
         with:
           allow: network.host
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
           file: Dockerfile
           context: .
-          cache-from: type=gha
-          cache-to: type=gha
           build-args: |
-            ARTIFACTORY_PASSWORD=${{ secrets.ARTIFACTORY_PASSWORD }}
-            ARTIFACTORY_USERNAME=${{ secrets.ARTIFACTORY_USERNAME }}
             BUILD_DATE=${{ steps.prep.outputs.build-date }}
             BUILD_USER=${{ steps.prep.outputs.build-user }}
             GIT_BRANCH=${{ steps.prep.outputs.git-branch }}
