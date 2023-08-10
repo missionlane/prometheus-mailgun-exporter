@@ -109,3 +109,13 @@ jobs:
             GIT_BRANCH=${{ steps.prep.outputs.git-branch }}
             GIT_REVISION=${{ steps.prep.outputs.git-version }}
             VERSION=${{ steps.prep.outputs.version }}
+
+      - name: Download Wiz-cli
+        run: curl -o wizcli https://wizcli.app.wiz.io/wizcli && chmod +x wizcli
+
+      - name: Authenticate to Wiz
+        run: ./wizcli auth --id ${{ secrets.WIZ_CLIENT_ID }} --secret ${{ secrets.WIZ_CLIENT_SECRET }}
+
+      - name: Run wiz-cli docker image scan
+        run: |
+          ./wizcli docker scan --image "docker-builds.pennywise.cc/${GITHUB_REPOSITORY}:${{ steps.prep.outputs.git-version }}" --policy "Wiz Test Image Policy" --log wiz.log || true
