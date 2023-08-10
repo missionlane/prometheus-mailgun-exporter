@@ -26,7 +26,7 @@ jobs:
         id: prep
         run: |
           ML_PROJECT_VERSION=$(TZ=UTC git --no-pager log -n1 --date="format-local:%Y%m%dT%H%M%S" --pretty="format:%cd-%h" --abbrev=7)
-          
+
           VERSION=edge
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
@@ -35,8 +35,8 @@ jobs:
           elif [[ $GITHUB_REF == refs/pull/* ]]; then
             VERSION=pr-${{ github.event.number }}
           fi
-          
-          # Tag with both registries GHCR and 
+
+          # Tag with both registries GHCR and
           if [ '${{ github.event_name != 'pull_request' }}' == 'true' ]; then
             # release to all registries
             GHCR=ghcr.io/${GITHUB_REPOSITORY,,}
@@ -47,9 +47,9 @@ jobs:
             ARTIFACTORY="docker-builds.pennywise.cc/${GITHUB_REPOSITORY,,}"
             TAGS="$ARTIFACTORY:$ML_PROJECT_VERSION"
           fi
-          
-          # outputs 
-          for out in "version=${VERSION}" "tags=${TAGS}" "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"; do
+
+          # outputs
+          for out in "build-date=$(date +%Y%m%d-%H:%M:%S)" "build-user=$(whoami)" "git-branch=$(git rev-parse --abbrev-ref HEAD)" "git-version=$(git rev-parse HEAD)" "version=${VERSION}" "tags=${TAGS}" "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"; do
             # echo "k=v" >> $GITHUB_OUTPUT
             echo $out | tee >(cat) >> $GITHUB_OUTPUT
           done
@@ -102,5 +102,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha
           build-args: |
-            ARTIFACTORY_PASSWORD=${{secrets.ARTIFACTORY_PASSWORD}}
-            ARTIFACTORY_USERNAME=${{secrets.ARTIFACTORY_USERNAME}}
+            ARTIFACTORY_PASSWORD=${{ secrets.ARTIFACTORY_PASSWORD }}
+            ARTIFACTORY_USERNAME=${{ secrets.ARTIFACTORY_USERNAME }}
+            BUILD_DATE=${{ steps.prep.outputs.build-date }}
+            BUILD_USER=${{ steps.prep.outputs.build-user }}
+            GIT_BRANCH=${{ steps.prep.outputs.git-branch }}
+            GIT_REVISION=${{ steps.prep.outputs.git-version }}
+            VERSION=${{ steps.prep.outputs.version }}
