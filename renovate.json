@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "local>missionlane/renovate-config"
+    "github>missionlane/renovate-config//ml-renovate-manifests/golang.json"
   ]
 }
