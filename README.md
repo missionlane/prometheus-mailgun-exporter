@@ -9,8 +9,8 @@ The exporter will serve metrics on `http://<ip>:9616/metrics`, and a healthz end
 
 `export MG_API_KEY=<api_key>`
 
-* Docker 
-  1. `docker run -ti --rm --name prometheus-mailgun-exporter -e MG_API_KEY missionlane/prometheus-mailgun-exporter:latest`
+* Docker
+  1. `docker run -ti --rm --name prometheus-mailgun-exporter -e MG_API_KEY -p 9616:9616 missionlane/prometheus-mailgun-exporter:latest`
 * Binary
   1. `./prometheus-mailgun-exporter`
 
