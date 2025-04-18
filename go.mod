@@ -2,10 +2,10 @@ module prometheus-mailgun-exporter
 
 require (
 	github.com/mailgun/mailgun-go/v3 v3.6.4
-	github.com/prometheus/client_golang v1.11.1
-	github.com/prometheus/common v0.30.0
-	github.com/rs/zerolog v1.23.0
-	gopkg.in/alecthomas/kingpin.v2 v2.2.6
+	github.com/prometheus/client_golang v1.22.0
+	github.com/prometheus/common v0.63.0
+	github.com/rs/zerolog v1.34.0
+	gopkg.in/alecthomas/kingpin.v2 v2.4.0
 )
 
 require (
