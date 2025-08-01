@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/kingpin/v2"
-	"github.com/mailgun/mailgun-go/v3"
+	"github.com/mailgun/mailgun-go/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
