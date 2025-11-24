@@ -2,5 +2,17 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "github>missionlane/renovate-config//ml-renovate-manifests/golang.json"
+  ],
+  "packageRules": [
+    {
+      "description": "Automerge CI, Docker, and Golang updates",
+      "matchCategories": [
+        "ci",
+        "docker",
+        "golang"
+      ],
+      "automerge": true,
+      "platformAutomerge": true
+    }
   ]
 }
