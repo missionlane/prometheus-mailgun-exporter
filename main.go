@@ -64,19 +64,16 @@ func prometheusDomainStatsTypeDesc(metric string, help string) *prometheus.Desc 
 
 // NewExporter returns an initialized exporter.
 func NewExporter() *Exporter {
-	// NewMailgunFromEnv requires MG_DOMAIN to get set, even though we don't need it for listing all domains
-	err := os.Setenv("MG_DOMAIN", "dummy")
-	if err != nil {
-		log.Fatal().Err(err).Msgf("%v", err)
+	apiKey := os.Getenv("MG_API_KEY")
+	if apiKey == "" {
+		log.Fatal().Msg("MG_API_KEY environment variable is required")
 	}
 
-	mg, err := mailgun.NewMailgunFromEnv()
-	APIBase, exists := os.LookupEnv("API_BASE")
-	if exists {
-		mg.SetAPIBase(APIBase)
-	}
-	if err != nil {
-		log.Fatal().Err(err).Msgf("%v", err)
+	mg := mailgun.NewMailgun(apiKey)
+	if apiBase, exists := os.LookupEnv("API_BASE"); exists {
+		if err := mg.SetAPIBase(apiBase); err != nil {
+			log.Fatal().Err(err).Msgf("Failed to set API base: %v", err)
+		}
 	}
 
 	return NewExporterWithClient(NewMailgunClientWrapper(mg))
@@ -187,104 +184,80 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 		metrics, err := e.mg.GetMetrics(ctx, domain)
 		if err != nil {
-			log.Error().Err(err)
+			log.Error().Err(err).Msgf("Failed to get metrics for domain %s", domain)
+			continue
 		}
 
-		var acceptedTotalIncoming = float64(0)
-		var acceptedTotalOutgoing = float64(0)
-		var clickedTotal = float64(0)
-		var complainedTotal = float64(0)
-		var deliveredHttpTotal = float64(0)
-		var deliveredSmtpTotal = float64(0)
-		var failedPermanentBounce = float64(0)
-		var failedPermanentDelayedBounce = float64(0)
-		var failedPermanentSuppressBounce = float64(0)
-		var failedPermanentSuppressComplaint = float64(0)
-		var failedPermanentSuppressUnsubscribe = float64(0)
-		var failedTemporaryEspblock = float64(0)
-		var openedTotal = float64(0)
-		var storedTotal = float64(0)
-		var unsubscribedTotal = float64(0)
-
-		for _, stat := range stats {
-			acceptedTotalIncoming += float64(stat.Accepted.Incoming)
-			acceptedTotalOutgoing += float64(stat.Accepted.Outgoing)
-			clickedTotal += float64(stat.Clicked.Total)
-			complainedTotal += float64(stat.Complained.Total)
-			complainedTotal += float64(stat.Complained.Total)
-			deliveredHttpTotal += float64(stat.Delivered.Http)
-			deliveredSmtpTotal += float64(stat.Delivered.Smtp)
-			failedPermanentBounce += float64(stat.Failed.Permanent.Bounce)
-			failedPermanentDelayedBounce += float64(stat.Failed.Permanent.DelayedBounce)
-			failedPermanentSuppressBounce += float64(stat.Failed.Permanent.SuppressBounce)
-			failedPermanentSuppressComplaint += float64(stat.Failed.Permanent.SuppressComplaint)
-			failedPermanentSuppressUnsubscribe += float64(stat.Failed.Permanent.SuppressUnsubscribe)
-			failedTemporaryEspblock += float64(stat.Failed.Temporary.Espblock)
-			openedTotal += float64(stat.Opened.Total)
-			storedTotal += float64(stat.Stored.Total)
-			unsubscribedTotal += float64(stat.Unsubscribed.Total)
+		// Helper function to safely get uint64 pointer value
+		getVal := func(p *uint64) float64 {
+			if p == nil {
+				return 0
+			}
+			return float64(*p)
 		}
 
 		// Begin Accepted Total
 		ch <- prometheus.MustNewConstMetric(
 			e.acceptedTotal,
 			prometheus.CounterValue,
-			acceptedTotalIncoming,
+			getVal(metrics.AcceptedIncomingCount),
 			domain, "incoming",
 		)
 		ch <- prometheus.MustNewConstMetric(
 			e.acceptedTotal,
 			prometheus.CounterValue,
-			acceptedTotalOutgoing,
+			getVal(metrics.AcceptedOutgoingCount),
 			domain, "outgoing",
 		)
 		// End Accepted Total
 
-		ch <- prometheus.MustNewConstMetric(e.clickedTotal, prometheus.CounterValue, clickedTotal, domain)
-		ch <- prometheus.MustNewConstMetric(e.complainedTotal, prometheus.CounterValue, complainedTotal, domain)
+		ch <- prometheus.MustNewConstMetric(e.clickedTotal, prometheus.CounterValue, getVal(metrics.ClickedCount), domain)
+		ch <- prometheus.MustNewConstMetric(e.complainedTotal, prometheus.CounterValue, getVal(metrics.ComplainedCount), domain)
 
 		// Begin Delivered Total
 		ch <- prometheus.MustNewConstMetric(
 			e.deliveredTotal,
 			prometheus.CounterValue,
-			deliveredHttpTotal,
+			getVal(metrics.DeliveredHTTPCount),
 			domain, "http",
 		)
 		ch <- prometheus.MustNewConstMetric(
 			e.deliveredTotal,
 			prometheus.CounterValue,
-			deliveredSmtpTotal,
+			getVal(metrics.DeliveredSMTPCount),
 			domain, "smtp",
 		)
 		// End Delivered Total
 
 		// Begin Failed Permanent Total
+		// Note: v5 API provides different granularity for permanent failures
+		// Using hard_bounces as "bounce" and soft_bounces + delayed_bounce combined for other categories
 		ch <- prometheus.MustNewConstMetric(
 			e.failedPermanentTotal,
 			prometheus.CounterValue,
-			failedPermanentBounce,
+			getVal(metrics.HardBouncesCount),
 			domain, "bounce",
 		)
 		ch <- prometheus.MustNewConstMetric(
 			e.failedPermanentTotal,
 			prometheus.CounterValue,
-			failedPermanentDelayedBounce,
+			getVal(metrics.DelayedBounceCount),
 			domain, "delayed_bounce",
 		)
 		ch <- prometheus.MustNewConstMetric(
 			e.failedPermanentTotal,
 			prometheus.CounterValue,
-			failedPermanentSuppressBounce,
+			getVal(metrics.SuppressedBouncesCount),
 			domain, "suppress_bounce",
 		)
 		ch <- prometheus.MustNewConstMetric(
 			e.failedPermanentTotal,
 			prometheus.CounterValue,
-			failedPermanentSuppressComplaint,
+			getVal(metrics.SuppressedComplaintsCount),
 			domain, "suppress_complaint",
 		)
 		ch <- prometheus.MustNewConstMetric(e.failedPermanentTotal, prometheus.CounterValue,
-			failedPermanentSuppressUnsubscribe,
+			getVal(metrics.SuppressedUnsubscribedCount),
 			domain, "suppress_unsubscribe",
 		)
 		// End Failed Permanent Total
@@ -292,13 +265,13 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(
 			e.failedTemporaryTotal,
 			prometheus.CounterValue,
-			failedTemporaryEspblock,
+			getVal(metrics.TemporaryFailedESPBlockCount),
 			domain, "esp_block",
 		)
 
-		ch <- prometheus.MustNewConstMetric(e.openedTotal, prometheus.CounterValue, openedTotal, domain)
-		ch <- prometheus.MustNewConstMetric(e.storedTotal, prometheus.CounterValue, storedTotal, domain)
-		ch <- prometheus.MustNewConstMetric(e.unsubscribedTotal, prometheus.CounterValue, unsubscribedTotal, domain)
+		ch <- prometheus.MustNewConstMetric(e.openedTotal, prometheus.CounterValue, getVal(metrics.OpenedCount), domain)
+		ch <- prometheus.MustNewConstMetric(e.storedTotal, prometheus.CounterValue, getVal(metrics.StoredCount), domain)
+		ch <- prometheus.MustNewConstMetric(e.unsubscribedTotal, prometheus.CounterValue, getVal(metrics.UnsubscribedCount), domain)
 	}
 
 	ch <- prometheus.MustNewConstMetric(e.up, prometheus.GaugeValue, 1)
