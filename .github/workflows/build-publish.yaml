@@ -11,8 +11,24 @@ env:
   ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
 jobs:
+  # Run tests and format check
+  test:
+    runs-on: self-hosted
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Run tests
+        run: make test
+
   # Build binaries for multiple platforms
   binary-build:
+    needs: test
     runs-on: self-hosted
     strategy:
       matrix:

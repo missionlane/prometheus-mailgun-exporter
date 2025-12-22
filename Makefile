@@ -26,6 +26,14 @@ VERSION      := $(shell cat VERSION)
 .PHONY: all
 all: prometheus-mailgun-exporter docker
 
+.PHONY: test
+test: fmt
+	@go test -v ./...
+
+.PHONY: generate
+generate:
+	@mockery
+
 .PHONY: fmt
 fmt:
 	@GO_FMT_RESULT=$$(gofmt -d .); \
