@@ -1,0 +1,144 @@
+name: Build and Publish Artifacts
+
+on:
+  release:
+    types:
+      - published
+  pull_request:
+
+env:
+  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+
+jobs:
+  # Build binaries for multiple platforms
+  binary-build:
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [arm64, amd64]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Build
+        run: |
+          VERSION=${GITHUB_REF_NAME:-dev}
+          BUILD_DATE=$(date +%Y%m%d-%H:%M:%S)
+          GIT_REVISION=${GITHUB_SHA}
+          GIT_BRANCH=${GITHUB_REF_NAME}
+          
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build \
+            -ldflags "-X github.com/prometheus/common/version.BuildDate=${BUILD_DATE} \
+                      -X github.com/prometheus/common/version.BuildUser=github-actions \
+                      -X github.com/prometheus/common/version.Branch=${GIT_BRANCH} \
+                      -X github.com/prometheus/common/version.Revision=${GIT_REVISION} \
+                      -X github.com/prometheus/common/version.Version=${VERSION}" \
+            -o prometheus-mailgun-exporter-${{ matrix.goos }}-${{ matrix.goarch }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prometheus-mailgun-exporter-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: ./prometheus-mailgun-exporter-${{ matrix.goos }}-${{ matrix.goarch }}
+
+  # Upload binaries to GitHub Release
+  binary-release:
+    if: github.event_name == 'release'
+    needs: binary-build
+    runs-on: self-hosted
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Prep binaries
+        run: |
+          mkdir tmp
+          mv prometheus-mailgun-exporter-*/* tmp/
+
+      - name: Generate SHA256 Checksum
+        run: |
+          cd tmp
+          shasum -a 256 prometheus-mailgun-exporter-* > sha256sums.txt
+
+      - name: Upload artifacts to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: false
+          files: |
+            ./tmp/sha256sums.txt
+            ./tmp/prometheus-mailgun-exporter-*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Build and publish Docker image to ghcr.io
+  docker-ghcr:
+    runs-on: self-hosted
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix=
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push to ghcr.io
+        uses: docker/build-push-action@v6
+        with:
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          file: Dockerfile
+          context: .
+          build-args: |
+            BUILD_DATE=${{ github.event.release.created_at || github.event.head_commit.timestamp }}
+            BUILD_USER=github-actions
+            GIT_BRANCH=${{ github.ref_name }}
+            GIT_REVISION=${{ github.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
+
+  # Build and publish Docker image to Artifactory
+  docker-artifactory:
+    if: github.event_name == 'release'
+    uses: missionlane/github-actions-shared/.github/workflows/container-pipeline.yaml@v1
+    secrets: inherit
+    with:
+      name: prometheus-mailgun-exporter
+      github-repository: prometheus-mailgun-exporter
+      image-name: infra/prometheus-mailgun-exporter
+      image-tags: ${{ github.ref_name }}
+      dockerfile: Dockerfile
+      context: .
