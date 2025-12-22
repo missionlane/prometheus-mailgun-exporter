@@ -75,16 +75,12 @@ jobs:
 
       - name: Download artifacts
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
-
-      - name: Prep binaries
-        run: |
-          mkdir tmp
-          mv prometheus-mailgun-exporter-*/* tmp/
+        with:
+          pattern: prometheus-mailgun-exporter-*
+          merge-multiple: true
 
       - name: Generate SHA256 Checksum
-        run: |
-          cd tmp
-          shasum -a 256 prometheus-mailgun-exporter-* > sha256sums.txt
+        run: shasum -a 256 prometheus-mailgun-exporter-* > sha256sums.txt
 
       - name: Upload artifacts to GitHub Release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
@@ -92,8 +88,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ./tmp/sha256sums.txt
-            ./tmp/prometheus-mailgun-exporter-*
+            ./sha256sums.txt
+            ./prometheus-mailgun-exporter-*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
