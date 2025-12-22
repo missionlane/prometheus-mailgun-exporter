@@ -115,9 +115,7 @@ jobs:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha,prefix=
+            type=raw,value={{date 'YYYYMMDD[T]HHmmss'}}-{{sha}}
 
       - name: Login to GitHub Container Registry
         if: github.event_name != 'pull_request'
