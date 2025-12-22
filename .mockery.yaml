@@ -1,0 +1,6 @@
+all: true
+dir: mocks
+packages:
+  prometheus-mailgun-exporter:
+    interfaces:
+      MailgunClient:

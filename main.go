@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/kingpin/v2"
-	"github.com/mailgun/mailgun-go/v3"
+	"github.com/mailgun/mailgun-go/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
@@ -22,7 +22,7 @@ const (
 
 // Exporter collects metrics from Mailgun's via their API.
 type Exporter struct {
-	mg                   *mailgun.MailgunImpl
+	mg                   MailgunClient
 	up                   *prometheus.Desc
 	acceptedTotal        *prometheus.Desc
 	clickedTotal         *prometheus.Desc
@@ -79,6 +79,12 @@ func NewExporter() *Exporter {
 		log.Fatal().Err(err).Msgf("%v", err)
 	}
 
+	return NewExporterWithClient(NewMailgunClientWrapper(mg))
+}
+
+// NewExporterWithClient returns an initialized exporter with a custom client.
+// This is primarily used for testing with mock clients.
+func NewExporterWithClient(mg MailgunClient) *Exporter {
 	return &Exporter{
 		mg: mg,
 		up: prometheus.NewDesc(
@@ -160,10 +166,14 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 // currently ongoing, Collect waits for it to end and then uses its result to
 // collect the metrics.
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
-	domains, err := e.listDomains()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	domains, err := e.mg.GetDomains(ctx)
 	if err != nil {
 		ch <- prometheus.MustNewConstMetric(e.up, prometheus.GaugeValue, 0)
 		log.Error().Err(err).Msgf("Scrape of Mailgun's API failed: %s", err)
+		return
 	}
 
 	for _, info := range domains {
@@ -175,7 +185,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		}
 		ch <- prometheus.MustNewConstMetric(e.state, prometheus.GaugeValue, float64(state), domain)
 
-		stats, err := getStats(domain)
+		metrics, err := e.mg.GetMetrics(ctx, domain)
 		if err != nil {
 			log.Error().Err(err)
 		}
@@ -292,48 +302,6 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	}
 
 	ch <- prometheus.MustNewConstMetric(e.up, prometheus.GaugeValue, 1)
-}
-
-func (e *Exporter) listDomains() ([]mailgun.Domain, error) {
-	it := e.mg.ListDomains(nil)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
-
-	var page, result []mailgun.Domain
-	for it.Next(ctx, &page) {
-		result = append(result, page...)
-	}
-
-	if it.Err() != nil {
-		return nil, it.Err()
-	}
-	return result, nil
-}
-
-func getStats(domain string) ([]mailgun.Stats, error) {
-	// Since we are using NewMailgunFromEnv, we need to set MG_DOMAIN before fetching stats for said domain
-	err := os.Setenv("MG_DOMAIN", domain)
-	if err != nil {
-		log.Error().Err(err)
-	}
-
-	mg, err := mailgun.NewMailgunFromEnv()
-	APIBase, exists := os.LookupEnv("API_BASE")
-	if exists {
-		mg.SetAPIBase(APIBase)
-	}
-	if err != nil {
-		log.Error().Err(err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
-
-	return mg.GetStats(ctx, []string{
-		"accepted", "clicked", "complained", "delivered", "failed", "opened", "stored", "unsubscribed",
-	}, &mailgun.GetStatOptions{
-		Duration: "240m",
-	})
 }
 
 func main() {
