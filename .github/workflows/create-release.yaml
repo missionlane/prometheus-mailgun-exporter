@@ -1,0 +1,28 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release-please:
+    runs-on: self-hosted
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: missionlane/github-actions-shared/.github/actions/github-app-access-token@v1
+        id: token
+        with:
+          app-id: ${{ secrets.ML_CICDBOT_APP_ID }}
+          app-installation-id: ${{ secrets.ML_CICDBOT_APP_INSTALLATION_ID }}
+          app-private-key: ${{ secrets.ML_CICDBOT_APP_PRIVATE_KEY }}
+
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ steps.token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
