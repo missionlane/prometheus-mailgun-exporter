@@ -6,14 +6,10 @@ on:
       - published
   pull_request:
 
-env:
-  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-
 jobs:
   # Run tests and format check
   test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -29,7 +25,7 @@ jobs:
   # Build binaries for multiple platforms
   binary-build:
     needs: test
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         goos: [linux, darwin]
@@ -69,7 +65,7 @@ jobs:
   binary-release:
     if: github.event_name == 'release'
     needs: binary-build
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: write
 
@@ -103,7 +99,7 @@ jobs:
 
   # Build and publish Docker image to ghcr.io
   docker-ghcr:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
@@ -145,16 +141,3 @@ jobs:
             GIT_BRANCH=${{ github.ref_name }}
             GIT_REVISION=${{ github.sha }}
             VERSION=${{ steps.meta.outputs.version }}
-
-  # Build and publish Docker image to Artifactory
-  docker-artifactory:
-    if: github.event_name == 'release'
-    uses: missionlane/github-actions-shared/.github/workflows/container-pipeline.yaml@v1
-    secrets: inherit
-    with:
-      name: prometheus-mailgun-exporter
-      github-repository: prometheus-mailgun-exporter
-      image-name: infra/prometheus-mailgun-exporter
-      image-tags: ${{ github.ref_name }}
-      dockerfile: Dockerfile
-      context: .
