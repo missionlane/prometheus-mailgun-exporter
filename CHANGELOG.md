@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v1.0.0...v1.0.1) (2025-12-22)
+
+
+### Bug Fixes
+
+* download only binary artifacts in release job ([26b8173](https://github.com/missionlane/prometheus-mailgun-exporter/commit/26b81738ed88ec5d76c327e57b4d28e8be0e86fd))
+* use v prefix for Docker image version tags ([0cafed9](https://github.com/missionlane/prometheus-mailgun-exporter/commit/0cafed9277bae469d663f3dc41b21c39ce95430a))
+
 ## [0.1.0](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v0.0.7...v0.1.0) (2025-12-22)
 
 
