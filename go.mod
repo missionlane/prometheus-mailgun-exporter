@@ -2,7 +2,7 @@ module prometheus-mailgun-exporter
 
 require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
-	github.com/mailgun/mailgun-go/v5 v5.10.0
+	github.com/mailgun/mailgun-go/v5 v5.10.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.5
 	github.com/rs/zerolog v1.34.0
@@ -17,7 +17,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/mailgun/errors v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
