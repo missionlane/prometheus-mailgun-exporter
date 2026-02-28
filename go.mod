@@ -2,7 +2,7 @@ module prometheus-mailgun-exporter
 
 require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
-	github.com/mailgun/mailgun-go/v5 v5.13.2
+	github.com/mailgun/mailgun-go/v5 v5.14.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.5
 	github.com/rs/zerolog v1.34.0
