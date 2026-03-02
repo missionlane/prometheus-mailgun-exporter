@@ -67,6 +67,7 @@ func TestExporter_Collect_Success(t *testing.T) {
 		SuppressedBouncesCount:       uint64Ptr(3),
 		SuppressedComplaintsCount:    uint64Ptr(1),
 		SuppressedUnsubscribedCount:  uint64Ptr(4),
+		SoftBouncesCount:             uint64Ptr(8),
 		TemporaryFailedESPBlockCount: uint64Ptr(7),
 		OpenedCount:                  uint64Ptr(150),
 		StoredCount:                  uint64Ptr(25),
@@ -87,10 +88,10 @@ func TestExporter_Collect_Success(t *testing.T) {
 	}
 
 	// Per domain: state(1) + accepted(2) + clicked(1) + complained(1) + delivered(2) +
-	//             failed_permanent(5) + failed_temporary(1) + opened(1) + stored(1) + unsubscribed(1) = 16
-	// 2 domains * 16 = 32, plus 1 'up' metric = 33
+	//             failed_permanent(6) + failed_temporary(1) + opened(1) + stored(1) + unsubscribed(1) = 17
+	// 2 domains * 17 = 34, plus 1 'up' metric = 35
 	// Should have metrics for both domains plus the 'up' metric
-	assert.Len(t, collectedMetrics, 33)
+	assert.Len(t, collectedMetrics, 35)
 }
 
 func TestExporter_Collect_GetDomainsError(t *testing.T) {

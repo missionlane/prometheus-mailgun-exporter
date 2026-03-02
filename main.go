@@ -260,6 +260,12 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			getVal(metrics.SuppressedUnsubscribedCount),
 			domain, "suppress_unsubscribe",
 		)
+		ch <- prometheus.MustNewConstMetric(
+			e.failedPermanentTotal,
+			prometheus.CounterValue,
+			getVal(metrics.SoftBouncesCount),
+			domain, "soft_bounce",
+		)
 		// End Failed Permanent Total
 
 		ch <- prometheus.MustNewConstMetric(

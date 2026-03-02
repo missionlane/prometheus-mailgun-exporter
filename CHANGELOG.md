@@ -5,11 +5,13 @@
 
 ### ⚠ BREAKING CHANGES
 
-* MG_DOMAIN environment variable is no longer required. The exporter now uses the new ListMetrics API instead of the deprecated GetStats API. All Prometheus metrics remain unchanged.
+* `MG_DOMAIN` environment variable is no longer required. The exporter now uses the new ListMetrics API instead of the deprecated GetStats API.
+* `mailgun_domain_stats_complained_total` values will be approximately 50% lower than before due to a bug fix — the previous version double-counted complained events.
 
 ### Features
 
 * upgrade mailgun-go from v3 to v5 ([2e386e1](https://github.com/missionlane/prometheus-mailgun-exporter/commit/2e386e16c0bffe5b06fe57f6279243e7e55ebe51))
+* add `mailgun_domain_stats_failed_permanent_total{type="soft_bounce"}` metric for soft bounce counts (previously only hard bounces were tracked under `type="bounce"`)
 
 
 ### Bug Fixes
