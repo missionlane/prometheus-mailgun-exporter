@@ -109,6 +109,7 @@ jobs:
 
   # Build and publish Docker image to ghcr.io
   docker-ghcr:
+    needs: test
     if: inputs.tag_name != ''
     runs-on: ubuntu-latest
     permissions:
