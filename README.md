@@ -14,9 +14,16 @@ The exporter will serve metrics on `http://<ip>:9616/metrics`, and a healthz end
 * Binary
   1. `./prometheus-mailgun-exporter`
 
+## Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MG_API_KEY` | Mailgun API key (required) | |
+| `API_BASE` | Mailgun API base URL | `https://api.mailgun.net` |
+
 ## Europe Users
 
-`export API_BASE=https://api.eu.mailgun.net/v3`
+`export API_BASE=https://api.eu.mailgun.net`
 
 ## Dashboard
-The Grafana dashboard can be found [here](https://grafana.com/grafana/dashboards/10663)
+A Grafana dashboard is included in [grafana/dashboard.json](grafana/dashboard.json).

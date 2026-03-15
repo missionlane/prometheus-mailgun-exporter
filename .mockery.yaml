@@ -1,6 +1,8 @@
-all: true
-dir: mocks
 packages:
   prometheus-mailgun-exporter:
     interfaces:
       MailgunClient:
+        config:
+          dir: mocks
+          filename: mock_mailgun_client.go
+          pkgname: mocks

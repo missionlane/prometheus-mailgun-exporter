@@ -10,7 +10,7 @@ import (
 // MailgunClient defines the interface for Mailgun API operations used by the exporter.
 // This interface allows for mocking in tests.
 //
-//go:generate mockery --name=MailgunClient --output=mocks --outpkg=mocks
+//go:generate mockery
 type MailgunClient interface {
 	// GetDomains returns all domains for the account
 	GetDomains(ctx context.Context) ([]mtypes.Domain, error)
