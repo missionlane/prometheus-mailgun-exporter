@@ -25,7 +25,7 @@ func TestNewExporterWithClient(t *testing.T) {
 	assert.NotNil(t, exporter)
 	assert.NotNil(t, exporter.mg)
 	assert.NotNil(t, exporter.up)
-	assert.NotNil(t, exporter.acceptedTotal)
+	assert.NotNil(t, exporter.accepted)
 }
 
 func TestExporter_Describe(t *testing.T) {

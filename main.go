@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -22,18 +21,18 @@ const (
 
 // Exporter collects metrics from Mailgun's via their API.
 type Exporter struct {
-	mg                   MailgunClient
-	up                   *prometheus.Desc
-	acceptedTotal        *prometheus.Desc
-	clickedTotal         *prometheus.Desc
-	complainedTotal      *prometheus.Desc
-	deliveredTotal       *prometheus.Desc
-	failedPermanentTotal *prometheus.Desc
-	failedTemporaryTotal *prometheus.Desc
-	openedTotal          *prometheus.Desc
-	storedTotal          *prometheus.Desc
-	unsubscribedTotal    *prometheus.Desc
-	state                *prometheus.Desc
+	mg              MailgunClient
+	up              *prometheus.Desc
+	accepted        *prometheus.Desc
+	clicked         *prometheus.Desc
+	complained      *prometheus.Desc
+	delivered       *prometheus.Desc
+	failedPermanent *prometheus.Desc
+	failedTemporary *prometheus.Desc
+	opened          *prometheus.Desc
+	stored          *prometheus.Desc
+	unsubscribed    *prometheus.Desc
+	state           *prometheus.Desc
 }
 
 func prometheusDomainStatsDesc(metric string, help string) *prometheus.Desc {
@@ -41,7 +40,7 @@ func prometheusDomainStatsDesc(metric string, help string) *prometheus.Desc {
 		prometheus.BuildFQName(
 			namespace,
 			"domain_stats",
-			fmt.Sprintf("%s_total", metric),
+			metric,
 		),
 		help,
 		[]string{"name"},
@@ -54,7 +53,7 @@ func prometheusDomainStatsTypeDesc(metric string, help string) *prometheus.Desc 
 		prometheus.BuildFQName(
 			namespace,
 			"domain_stats",
-			fmt.Sprintf("%s_total", metric),
+			metric,
 		),
 		help,
 		[]string{"name", "type"},
@@ -94,39 +93,39 @@ func NewExporterWithClient(mg MailgunClient) *Exporter {
 			nil,
 			nil,
 		),
-		acceptedTotal: prometheusDomainStatsTypeDesc(
+		accepted: prometheusDomainStatsTypeDesc(
 			"accepted",
 			"Mailgun accepted the request for incoming/outgoing to send/forward the email and the message has been placed in queue.",
 		),
-		clickedTotal: prometheusDomainStatsDesc(
+		clicked: prometheusDomainStatsDesc(
 			"clicked",
 			"The email recipient clicked on a link in the email.",
 		),
-		complainedTotal: prometheusDomainStatsDesc(
+		complained: prometheusDomainStatsDesc(
 			"complained",
 			"The email recipient clicked on the spam complaint button within their email client.",
 		),
-		deliveredTotal: prometheusDomainStatsTypeDesc(
+		delivered: prometheusDomainStatsTypeDesc(
 			"delivered",
 			"Mailgun sent the email via HTTP or SMTP and it was accepted by the recipient email server.",
 		),
-		failedPermanentTotal: prometheusDomainStatsTypeDesc(
+		failedPermanent: prometheusDomainStatsTypeDesc(
 			"failed_permanent",
 			"All permanently failed emails. Includes bounce, delayed bounce, suppress bounce, suppress complaint, suppress unsubscribe",
 		),
-		failedTemporaryTotal: prometheusDomainStatsTypeDesc(
+		failedTemporary: prometheusDomainStatsTypeDesc(
 			"failed_temporary",
 			"All temporary failed emails due to ESP block, that will be retried",
 		),
-		openedTotal: prometheusDomainStatsDesc(
+		opened: prometheusDomainStatsDesc(
 			"opened",
 			"The email recipient opened the email and enabled image viewing.",
 		),
-		storedTotal: prometheusDomainStatsDesc(
+		stored: prometheusDomainStatsDesc(
 			"stored",
 			"The email recipient opened the email and enabled image viewing.",
 		),
-		unsubscribedTotal: prometheusDomainStatsDesc(
+		unsubscribed: prometheusDomainStatsDesc(
 			"unsubscribed",
 			"The email recipient clicked on the unsubscribe link.",
 		),
@@ -146,15 +145,15 @@ func NewExporterWithClient(mg MailgunClient) *Exporter {
 // Describe implements prometheus.Collector.
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- e.up
-	ch <- e.acceptedTotal
-	ch <- e.clickedTotal
-	ch <- e.complainedTotal
-	ch <- e.deliveredTotal
-	ch <- e.failedPermanentTotal
-	ch <- e.failedTemporaryTotal
-	ch <- e.openedTotal
-	ch <- e.storedTotal
-	ch <- e.unsubscribedTotal
+	ch <- e.accepted
+	ch <- e.clicked
+	ch <- e.complained
+	ch <- e.delivered
+	ch <- e.failedPermanent
+	ch <- e.failedTemporary
+	ch <- e.opened
+	ch <- e.stored
+	ch <- e.unsubscribed
 	ch <- e.state
 }
 
@@ -172,6 +171,8 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		log.Error().Err(err).Msgf("Scrape of Mailgun's API failed: %s", err)
 		return
 	}
+
+	log.Debug().Int("count", len(domains)).Msg("Fetched domains")
 
 	for _, info := range domains {
 		domain := info.Name
@@ -196,88 +197,32 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			return float64(*p)
 		}
 
-		// Begin Accepted Total
-		ch <- prometheus.MustNewConstMetric(
-			e.acceptedTotal,
-			prometheus.CounterValue,
-			getVal(metrics.AcceptedIncomingCount),
-			domain, "incoming",
-		)
-		ch <- prometheus.MustNewConstMetric(
-			e.acceptedTotal,
-			prometheus.CounterValue,
-			getVal(metrics.AcceptedOutgoingCount),
-			domain, "outgoing",
-		)
-		// End Accepted Total
+		if metrics.AcceptedIncomingCount == nil && metrics.AcceptedOutgoingCount == nil {
+			log.Warn().Str("domain", domain).
+				Msg("Metrics API returned no data; check that your Mailgun plan includes the analytics API")
+		}
 
-		ch <- prometheus.MustNewConstMetric(e.clickedTotal, prometheus.CounterValue, getVal(metrics.ClickedCount), domain)
-		ch <- prometheus.MustNewConstMetric(e.complainedTotal, prometheus.CounterValue, getVal(metrics.ComplainedCount), domain)
+		ch <- prometheus.MustNewConstMetric(e.accepted, prometheus.GaugeValue, getVal(metrics.AcceptedIncomingCount), domain, "incoming")
+		ch <- prometheus.MustNewConstMetric(e.accepted, prometheus.GaugeValue, getVal(metrics.AcceptedOutgoingCount), domain, "outgoing")
 
-		// Begin Delivered Total
-		ch <- prometheus.MustNewConstMetric(
-			e.deliveredTotal,
-			prometheus.CounterValue,
-			getVal(metrics.DeliveredHTTPCount),
-			domain, "http",
-		)
-		ch <- prometheus.MustNewConstMetric(
-			e.deliveredTotal,
-			prometheus.CounterValue,
-			getVal(metrics.DeliveredSMTPCount),
-			domain, "smtp",
-		)
-		// End Delivered Total
+		ch <- prometheus.MustNewConstMetric(e.clicked, prometheus.GaugeValue, getVal(metrics.ClickedCount), domain)
+		ch <- prometheus.MustNewConstMetric(e.complained, prometheus.GaugeValue, getVal(metrics.ComplainedCount), domain)
 
-		// Begin Failed Permanent Total
-		// Note: v5 API provides different granularity for permanent failures
-		// Using hard_bounces as "bounce" and soft_bounces + delayed_bounce combined for other categories
-		ch <- prometheus.MustNewConstMetric(
-			e.failedPermanentTotal,
-			prometheus.CounterValue,
-			getVal(metrics.HardBouncesCount),
-			domain, "bounce",
-		)
-		ch <- prometheus.MustNewConstMetric(
-			e.failedPermanentTotal,
-			prometheus.CounterValue,
-			getVal(metrics.DelayedBounceCount),
-			domain, "delayed_bounce",
-		)
-		ch <- prometheus.MustNewConstMetric(
-			e.failedPermanentTotal,
-			prometheus.CounterValue,
-			getVal(metrics.SuppressedBouncesCount),
-			domain, "suppress_bounce",
-		)
-		ch <- prometheus.MustNewConstMetric(
-			e.failedPermanentTotal,
-			prometheus.CounterValue,
-			getVal(metrics.SuppressedComplaintsCount),
-			domain, "suppress_complaint",
-		)
-		ch <- prometheus.MustNewConstMetric(e.failedPermanentTotal, prometheus.CounterValue,
-			getVal(metrics.SuppressedUnsubscribedCount),
-			domain, "suppress_unsubscribe",
-		)
-		ch <- prometheus.MustNewConstMetric(
-			e.failedPermanentTotal,
-			prometheus.CounterValue,
-			getVal(metrics.SoftBouncesCount),
-			domain, "soft_bounce",
-		)
-		// End Failed Permanent Total
+		ch <- prometheus.MustNewConstMetric(e.delivered, prometheus.GaugeValue, getVal(metrics.DeliveredHTTPCount), domain, "http")
+		ch <- prometheus.MustNewConstMetric(e.delivered, prometheus.GaugeValue, getVal(metrics.DeliveredSMTPCount), domain, "smtp")
 
-		ch <- prometheus.MustNewConstMetric(
-			e.failedTemporaryTotal,
-			prometheus.CounterValue,
-			getVal(metrics.TemporaryFailedESPBlockCount),
-			domain, "esp_block",
-		)
+		ch <- prometheus.MustNewConstMetric(e.failedPermanent, prometheus.GaugeValue, getVal(metrics.HardBouncesCount), domain, "bounce")
+		ch <- prometheus.MustNewConstMetric(e.failedPermanent, prometheus.GaugeValue, getVal(metrics.DelayedBounceCount), domain, "delayed_bounce")
+		ch <- prometheus.MustNewConstMetric(e.failedPermanent, prometheus.GaugeValue, getVal(metrics.SuppressedBouncesCount), domain, "suppress_bounce")
+		ch <- prometheus.MustNewConstMetric(e.failedPermanent, prometheus.GaugeValue, getVal(metrics.SuppressedComplaintsCount), domain, "suppress_complaint")
+		ch <- prometheus.MustNewConstMetric(e.failedPermanent, prometheus.GaugeValue, getVal(metrics.SuppressedUnsubscribedCount), domain, "suppress_unsubscribe")
+		ch <- prometheus.MustNewConstMetric(e.failedPermanent, prometheus.GaugeValue, getVal(metrics.SoftBouncesCount), domain, "soft_bounce")
 
-		ch <- prometheus.MustNewConstMetric(e.openedTotal, prometheus.CounterValue, getVal(metrics.OpenedCount), domain)
-		ch <- prometheus.MustNewConstMetric(e.storedTotal, prometheus.CounterValue, getVal(metrics.StoredCount), domain)
-		ch <- prometheus.MustNewConstMetric(e.unsubscribedTotal, prometheus.CounterValue, getVal(metrics.UnsubscribedCount), domain)
+		ch <- prometheus.MustNewConstMetric(e.failedTemporary, prometheus.GaugeValue, getVal(metrics.TemporaryFailedESPBlockCount), domain, "esp_block")
+
+		ch <- prometheus.MustNewConstMetric(e.opened, prometheus.GaugeValue, getVal(metrics.OpenedCount), domain)
+		ch <- prometheus.MustNewConstMetric(e.stored, prometheus.GaugeValue, getVal(metrics.StoredCount), domain)
+		ch <- prometheus.MustNewConstMetric(e.unsubscribed, prometheus.GaugeValue, getVal(metrics.UnsubscribedCount), domain)
 	}
 
 	ch <- prometheus.MustNewConstMetric(e.up, prometheus.GaugeValue, 1)
