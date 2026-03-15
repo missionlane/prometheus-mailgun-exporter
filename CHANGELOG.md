@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v1.1.0...v2.0.0) (2026-03-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* All domain stats metric names have changed by dropping the _total suffix (e.g. mailgun_domain_stats_accepted_total is now mailgun_domain_stats_accepted). Metric type changed from counter to gauge. Grafana dashboards using rate() or increase() on these metrics will need to be updated.
+
+### Bug Fixes
+
+* change domain stats metrics from counter to gauge ([066fe58](https://github.com/missionlane/prometheus-mailgun-exporter/commit/066fe58ae9b1dd5b40d0776f60c5bcd74f4d1d6b)), closes [#95](https://github.com/missionlane/prometheus-mailgun-exporter/issues/95)
+
 ## [1.1.0](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v1.0.0...v1.1.0) (2026-03-02)
 
 
