@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.1](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v2.0.0...v2.0.1) (2026-04-02)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/mailgun/mailgun-go/v5 to v5.15.0 ([4e7613e](https://github.com/missionlane/prometheus-mailgun-exporter/commit/4e7613ed3bad716e4b3d4091c071993e16e457f6))
+* **deps:** update module github.com/rs/zerolog to v1.35.0 ([d7cc774](https://github.com/missionlane/prometheus-mailgun-exporter/commit/d7cc77453888d482338a806daf72a7a3851c3c7a))
+
 ## [2.0.0](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v1.1.0...v2.0.0) (2026-03-15)
 
 
