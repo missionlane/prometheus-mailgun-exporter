@@ -199,7 +199,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 		if metrics.AcceptedIncomingCount == nil && metrics.AcceptedOutgoingCount == nil {
 			log.Warn().Str("domain", domain).
-				Msg("Metrics API returned no data; check that your Mailgun plan includes the analytics API")
+				Msg("Metrics API returned no data; check that your Mailgun plan includes the analytics API, or verify that there was mail activity in the last 4h.")
 		}
 
 		ch <- prometheus.MustNewConstMetric(e.accepted, prometheus.GaugeValue, getVal(metrics.AcceptedIncomingCount), domain, "incoming")
