@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.2](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v2.0.1...v2.0.2) (2026-05-06)
+
+
+### Bug Fixes
+
+* correct date fields and use server-side domain stats ([db157ec](https://github.com/missionlane/prometheus-mailgun-exporter/commit/db157eceb4466f41ddde9f3e303d09a3b2f9ca85))
+* **deps:** update module github.com/rs/zerolog to v1.35.1 ([5bb680e](https://github.com/missionlane/prometheus-mailgun-exporter/commit/5bb680edabdb15ee8fbcf00c7a6019a52a5d0f89))
+
 ## [2.0.1](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v2.0.0...v2.0.1) (2026-04-02)
 
 
