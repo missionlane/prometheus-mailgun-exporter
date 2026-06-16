@@ -18,7 +18,7 @@ RUN apk --update --no-cache add git && \
                         -X github.com/prometheus/common/version.Revision=${GIT_REVISION} \
                         -X github.com/prometheus/common/version.Version=${VERSION}"
 
-FROM alpine:latest@sha256:a2d49ea686c2adfe3c992e47dc3b5e7fa6e6b5055609400dc2acaeb241c829f4
+FROM alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
 RUN apk --update --no-cache add ca-certificates
 ENTRYPOINT ["/prometheus-mailgun-exporter"]
 EXPOSE 9616/tcp
