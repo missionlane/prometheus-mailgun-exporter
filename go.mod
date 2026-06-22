@@ -4,7 +4,7 @@ require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/mailgun/mailgun-go/v5 v5.16.0
 	github.com/prometheus/client_golang v1.23.2
-	github.com/prometheus/common v0.68.1
+	github.com/prometheus/common v0.69.0
 	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.11.1
 )
