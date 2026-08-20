@@ -18,8 +18,8 @@ github.com/klauspost/compress v1.19.1 h1:VsB4HPswih7mmZ8WleSFQ75c/Ui1M4trX5oAsJn
 github.com/klauspost/compress v1.19.1/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
-github.com/mailgun/mailgun-go/v5 v5.19.1 h1:KJdV0Faj/OiYbrXccm37IfjA33+6vDShw8qK9dD4lsA=
-github.com/mailgun/mailgun-go/v5 v5.19.1/go.mod h1:k1olhHyds+CHsFyO5AQMist+BNiAgVtK8apVQkFlLjI=
+github.com/mailgun/mailgun-go/v5 v5.19.2 h1:8W5DMfenuA2/ROPG1KfbslLXe39+RT9wH/9jWMjXPpw=
+github.com/mailgun/mailgun-go/v5 v5.19.2/go.mod h1:k1olhHyds+CHsFyO5AQMist+BNiAgVtK8apVQkFlLjI=
 github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=
 github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
