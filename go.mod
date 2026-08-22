@@ -6,7 +6,7 @@ require (
 	github.com/prometheus/client_golang v1.24.1
 	github.com/prometheus/common v0.70.1
 	github.com/rs/zerolog v1.35.1
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 )
 
 require (
@@ -22,9 +22,9 @@ require (
 	github.com/prometheus/procfs v0.21.1 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 go 1.26.6
