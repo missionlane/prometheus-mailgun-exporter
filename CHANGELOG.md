@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.7](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v2.0.6...v2.0.7) (2026-09-05)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/mailgun/mailgun-go/v5 to v5.19.3 ([f99fc0d](https://github.com/missionlane/prometheus-mailgun-exporter/commit/f99fc0d49faa9ea0a2dc5d5fa549c41f3eba6f34))
+* **deps:** update module github.com/prometheus/common to v0.71.0 ([671d134](https://github.com/missionlane/prometheus-mailgun-exporter/commit/671d134e7444660f6886e1287eefcf857687cb80))
+* **deps:** update module github.com/stretchr/testify to v1.12.1 ([49a5acc](https://github.com/missionlane/prometheus-mailgun-exporter/commit/49a5acc245bcd833af121ab2d54a502309339119))
+
 ## [2.0.6](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v2.0.5...v2.0.6) (2026-08-20)
 
 
