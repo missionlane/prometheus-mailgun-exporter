@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.9](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v2.0.8...v2.0.9) (2026-10-13)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/prometheus/client_golang to v1.25.0 ([5e985a2](https://github.com/missionlane/prometheus-mailgun-exporter/commit/5e985a239aeeb7ca2588c0f0e50ffbe6e5c6a7b9))
+
 ## [2.0.8](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v2.0.7...v2.0.8) (2026-10-03)
 
 
