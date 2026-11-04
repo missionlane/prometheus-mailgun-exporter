@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.12](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v2.0.11...v2.0.12) (2026-11-04)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/prometheus/common to v0.73.0 ([e451a0b](https://github.com/missionlane/prometheus-mailgun-exporter/commit/e451a0b74833fe6bf6276e9c69eaafa72305940f))
+* **deps:** update module github.com/prometheus/common to v0.73.1 ([c26d902](https://github.com/missionlane/prometheus-mailgun-exporter/commit/c26d90283d415493fa7bc3f2c21689d7b48d16d2))
+
 ## [2.0.11](https://github.com/missionlane/prometheus-mailgun-exporter/compare/v2.0.10...v2.0.11) (2026-10-21)
 
 
