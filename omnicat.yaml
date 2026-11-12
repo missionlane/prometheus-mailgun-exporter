@@ -1,0 +1,11 @@
+schemaVersion: 0.1.0
+projects:
+- id: prometheus-mailgun-exporter
+  directory: ./
+  facts:
+    renovate:
+      enabled:
+        value: true
+        provenance: oracle-verified
+        last_evaluated: 2026-11-12
+        notes: renovate.json on main (renovate derive.py)
